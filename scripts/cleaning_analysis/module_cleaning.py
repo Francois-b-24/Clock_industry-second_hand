@@ -490,10 +490,11 @@ def traitement_sexe(df, colonne):
     df[colonne] = sexe
     df[colonne] = df[colonne].astype('category')
     
-    mapping = {"['homme/Unisexe']":"HOMME",
-            "homme/Unisexe" : 'HOMME' ,
-           "['Montre', 'homme/Unisexe']" : "HOMME",
-           "['Montre', 'femme']":"FEMME" 
+    mapping = {"['HOMME/UNISEXE']":"HOMME",
+            "HOMME/UNISEXE" : 'HOMME' ,
+           "['MONTRE', 'HOMME/UNISEXE']" : "HOMME",
+           "['MONTRE', 'FEMME']":"FEMME",
+           "femme":"FEMME" 
     }
 
     df[colonne] = df[colonne].replace(mapping)
