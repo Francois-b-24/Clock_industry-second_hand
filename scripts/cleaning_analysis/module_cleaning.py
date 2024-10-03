@@ -131,26 +131,6 @@ def remplissage_reserve_marche(df, variable):
     return df
 
 
-def suppression_lignes_vides_suite(df, liste_colonnes, colonnes_a_supp, colonne):
-    """
-    Fonctions pour supprimer les lignes vides sur la base de certaines colonnes dont on à toujours pas pu remplir les informations.
-    Supprime également certaines colonnes initules.  
-
-    Args:
-        df (pd.DataFarme): DataFrame contenant les colonnes à traiter. 
-        liste_colonnes (list): Liste des colonnes à traiter.
-    
-    Returns: 
-        pd.DataFrame : DataFrame modifié.  
-    """
-    
-    df = df.dropna(subset=liste_colonnes)
-    df = df[df[colonne] != '[]']
-    df = df.drop(columns=colonnes_a_supp)
-    df = df.dropna(subset=liste_colonnes)
-    
-    return df
-
 def count_functions(fonction_string):
     
     """
@@ -229,11 +209,41 @@ def remplissage_reserve_marche_bis(df, variable):
     
     return df
 
+def suppression_lignes_vides_suite(df, liste_colonnes, colonnes_a_supp, colonne):
+    """
+    Fonctions pour supprimer les lignes vides sur la base de certaines colonnes dont on à toujours pas pu remplir les informations.
+    Supprime également certaines colonnes initules.  
+
+    Args:
+        df (pd.DataFarme): DataFrame contenant les colonnes à traiter. 
+        liste_colonnes (list): Liste des colonnes à traiter.
+    
+    Returns: 
+        pd.DataFrame : DataFrame modifié.  
+    """
+    
+    df = df.dropna(subset=liste_colonnes)
+    df = df[df[colonne] != '[]']
+    df = df.drop(columns=colonnes_a_supp)
+    df = df.dropna(subset=liste_colonnes)
+    
+    return df
+
 ################################################################################################    
                             # TRAITEMENT DES COLONNES. 
 ################################################################################################
 def traitement_marque(df, colonne):
     """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'Marque'.
+    On utilise également la fonction de correspondances floue pour regrouper les catégories similaires et ainsi 
+    réduire le nombre de modalité. 
+    
+    Arg:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
     df[colonne] = df[colonne].astype(str)
     marque = [i.replace('&', '') for i in df['colonne']]
@@ -261,6 +271,16 @@ def traitement_marque(df, colonne):
 
 def traitement_modele(df, colonne):
     """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'Modele'.
+    On utilise également la fonction de correspondances floue pour regrouper les catégories similaires et ainsi 
+    réduire le nombre de modalité. 
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
     modele = [''.join(i.split(",")[0:2]) for i in df[colonne]]
     modele = [i.strip("['").strip("']").replace(',','').replace(' ','').replace("''","_") for i in modele]
@@ -268,7 +288,19 @@ def traitement_modele(df, colonne):
     df[colonne] = modele
     df[colonne] = df[colonne].astype('category')
     
+    return df
+    
 def traitement_mouvement(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'Mouvement'.
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
     mapping = {"['28000', 'A/h']": "automatique",
             "REMONTAGE''AUTOMATIQUE": "automatique",
             "REMONTAGE''MANUEL" : "manuel"
@@ -285,11 +317,15 @@ def traitement_mouvement(df, colonne):
             
 
 def traitement_matiere_bracelet(df, colonne):
-    """_summary_
-
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'Matiere_bracelet'.
+    
     Args:
-        df (_type_): _description_
-        colonne (_type_): _description_
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
     
     matiere_bracelet = [i.replace('mm)','Inconnue').replace("mm",'Inconnue').replace('/',"_") for i in df[colonne]]
@@ -337,7 +373,15 @@ def traitement_matiere_bracelet(df, colonne):
 
 def traitement_matiere_boitier(df, colonne):
     
-    """_summary_
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'Matiere_boitier'.
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
     matiere_boitier = [i.strip(']').strip('[') for i in df[colonne]]
     matiere_boitier = [i.replace("', '","_").replace("'",'').replace('/','_') for i in matiere_boitier]
@@ -348,11 +392,16 @@ def traitement_matiere_boitier(df, colonne):
     return df 
 
 def traitement_annee_prod(df, colonne):
-    """_summary_
-
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'Annee_prod'.
+    Utilisation du regex pour extraire uniquement les années. 
+    
     Args:
-        df (_type_): _description_
-        colonne (_type_): _description_
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
     
     annee_prod = [i.strip(']').strip('[') for i in df[colonne]]
@@ -376,11 +425,16 @@ def traitement_annee_prod(df, colonne):
     return df
 
 def traitement_etat(df, colonne):
-    """_summary_
-
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'etat'.
+    
+    
     Args:
-        df (_type_): _description_
-        colonne (_type_): _description_
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
     
     etat = [i.replace("[", "").replace("]", "").replace("'", "").replace("\"", "").replace("(", "").replace(")", "") for i in df[colonne]]
@@ -427,8 +481,16 @@ def traitement_etat(df, colonne):
 
 def traitement_sexe(df, colonne):
     """
-    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'sexe'.
     
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
     mapping = {"HOMME/UNISEXE":"HOMME",
            "['MONTRE', 'HOMME/UNISEXE']":"HOMME",
            "['MONTRE', 'FEMME']":"FEMME"  
@@ -438,5 +500,231 @@ def traitement_sexe(df, colonne):
     sexe = [i.upper() for i in df[colonne]]
     df[colonne] = sexe
     df[colonne] = df[colonne].astype('category')
+    
+    return df
+
+def extraire_elements_avant_euro(chaine):
+    
+    # Convertir la chaîne en liste Python
+    liste = eval(chaine)
+    
+    # Initialiser une liste vide pour les résultats
+    sous_liste = []
+    
+    # Vérifier si '€)' ou '€' est dans la liste
+    if '€)' in liste:
+        # Trouver l'index de '€)'
+        index_fin = liste.index('€)')
+        
+        # Extraire les deux éléments précédant '€)' s'ils existent
+        if index_fin >= 2:
+            sous_liste = liste[index_fin-2:index_fin]
+        else:
+            sous_liste = liste[:index_fin]
+    elif '€' in liste:
+        # Trouver l'index de '€'
+        index_fin = liste.index('€')
+        
+        # Extraire les deux éléments précédant '€' s'ils existent
+        if index_fin >= 2:
+            sous_liste = liste[index_fin-2:index_fin]
+        else:
+            sous_liste = liste[:index_fin]
+    
+    return sous_liste
+
+def traitement_prix(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'prix'.
+    
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
+    
+    prix = [''.join(sous_liste).strip() for sous_liste in df[colonne]]
+    prix = [i.replace("(=","") for i in prix]
+    df[colonne] = prix
+    df = df[df[colonne] != '']
+    df[colonne] = df[colonne].astype('float')
+    
+    return df
+
+# Fonction pour extraire les éléments spéciaux
+def extraire_elements_h(chaine):
+    # Gérer le cas spécial 'Pas_de_reserve'
+    if chaine == 'Pas_de_reserve':
+        return 0
+    if chaine == '[Ultra, Thin, Réserve, de, Marche]':
+        return 0
+    
+    # Convertir la chaîne en liste Python
+    liste = eval(chaine)
+    
+    # Vérifier si 'h' est dans la liste
+    if 'h' in liste:
+        # Trouver l'index de 'h'
+        index_h = liste.index('h')
+        
+        # Extraire l'élément précédant 'h' s'il existe
+        if index_h >= 1:
+            return liste[index_h-1]
+        else:
+            return liste[:index_h]
+    
+    # Si aucune des conditions n'est remplie, retourner la liste entière
+    return list 
+
+def traitement_diametre(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'diametre'.
+    
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
+    
+    diametre = [i.split(',')[0] for i in df[colonne]]
+    diametre = [i.replace(" ","") for i in diametre]
+    diametre = [i.replace('[',"").replace("]","").replace("'",'').replace("mm","") for i in diametre]
+    df[colonne] = diametre
+    df[colonne] = df[colonne].astype('float')
+    diametre = [math.ceil(i) for i in df[colonne]]
+    df[colonne] = diametre
+    
+    return df
+
+def traitement_etencheite(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'etencheite'.
+    
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
+    etencheite = [i.split(',')[0] for i in df[colonne]]
+    etencheite = [i.replace('[',"").replace("]","").replace("'",'').replace('Non', '0').replace('Au-delà','0') for i in etencheite]
+    df[colonne] = etencheite
+    df[colonne] = df[colonne].astype('float')
+    
+    return df
+
+def traitement_matiere_lunette(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'matiere_lunette'.
+    
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
+    valeurs_a_remplacer = ['rose','jaune','blanc','rouge']
+    df[colonne] = df[colonne].replace(valeurs_a_remplacer, 'Indetermine')
+    matiere_lunette = [i.replace("/","_").upper() for i in df[colonne]]
+    df[colonne] = matiere_lunette
+    df[colonne] = df[colonne].astype('category')
+    
+    def extract_matter(val):
+        # Vérifier si la valeur est une liste sous forme de chaîne
+        if isinstance(val, str) and '[' in val and ']' in val:
+            # Extraire les éléments de la liste à partir de la chaîne
+            elements = re.findall(r"'([^']*)'", val)
+            # Chercher le dernier élément de la liste (la matière)
+            return elements[-1] if elements else None
+        else:
+            # Si ce n'est pas une liste, retourner la valeur elle-même
+            return val
+
+    matiere_lunette = [extract_matter(val) for val in df[colonne]]
+    df[colonne] = matiere_lunette
+    
+    return df
+
+def traitement_matiere_verre(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'matiere_verre'.
+    
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
+    
+    matiere_verre = [i.replace("[","").replace("]","").replace("'","") for i in df[colonne]]
+    matiere_verre = [i.upper() for i in matiere_verre]
+    df[colonne] = matiere_verre
+    df[colonne] = df[colonne].astype('category')
+        
+    return df
+
+def traitement_matiere_boucle(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'matiere_boucle'.
+    
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """
+    matiere_boucle = [i.strip(",").replace("[","").replace("]","").replace("'","").replace(",","").replace(" ","_").replace("/","_") for i in df['matiere_boucle']]
+    matiere_boucle = [i.upper() for i in matiere_boucle]
+    df['matiere_boucle'] = matiere_boucle
+    df['matiere_boucle'] = df['matiere_boucle'].astype('category')
+    
+    return df
+
+def traitement_ville(df, colonne):
+    """
+    Fonctions pour le traitement des caractères spéciaux de la colonne 'ville'.
+    
+    
+    Args:
+        df (pd.DataFrame): DataFrame contenant la colonne.
+        colonne (str): Colonne à traiter. 
+    
+    Returns:
+        pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
+    """ 
+    pays = [i.replace('[','').replace(']','').replace("'","") for i in df[colonne]]
+    pays = [i.split(',')[0] for i in pays]
+    pays = [i.upper() for i in pays]
+    
+    df = df.drop(columns=[colonne])
+    df['pays'] = pays
+    df['pays'] = df['pays'].astype('category')
+    
+    mapping = {
+        'AFRIQUE': 'AFRIQUE_DU_SUD',
+        'RÉPUBLIQUE' : 'RÉPUBLIQUE_TCHEQUE',
+        'HONG' : 'HONG_KONG',
+        'VIÊT' : 'VIETNAM',
+        'PORTO' : 'PORTUGAL',
+        'E.A.U.' : 'EMIRAT_ARABE_UNIS',
+        'SRI': 'SRI_LANKA',
+        'ARABIE' : 'ARABIE_SAOUDITE' 
+    }
+
+    df['pays'] = df['pays'].replace(mapping)
     
     return df
