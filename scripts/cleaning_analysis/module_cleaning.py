@@ -16,41 +16,29 @@ from fuzzywuzzy import process
                             # NETTOYAGE PRÉLIMINAIRE. 
 ################################################################################################
 
-def suppression_doublons(df, liste_colonnes):
+def suppression(df, liste_colonnes):
     """
     Supprimme les doublons dans le DataFrame sur la base d'une liste de colonnes. 
-
+    Fonction pour supprimer les NaN sur la base de certaines colonnes dont il est difficile de retrouver l'information. 
+    
     Args:
         df(pd.Dataframe) : Le Dataframe contenant les colonnes. 
-        liste_colonne (list) : Liste des variables sur lesquelles va se baser la suppression des doublons. 
+        liste_colonnes (list): Listes des colonnes sur lesquelles va se baser la suppression des lignes vides. 
     
     Returns: 
         pd.Dataframe : DataFrame sans doublons. 
     """    
-    df = df.drop_duplicates(subset=liste_colonnes, keep ='first')
-    
-    return df
-
-def suppression_lignes_vides(df, liste_colonnes): 
-    """
-    Fonction pour supprimer les NaN sur la base de certaines colonnes dont il est difficile de retrouver l'information. 
-
-    Args:
-        df (pd.DataFrame): Le DataFarme contenant les colonnes.
-        liste_colonnes (list): Listes des colonnes sur lesquelles va se baser la suppression des colonnes.
-    
-    Returns: 
-        pd.DataFrame : DataFrame soulagé de quelque lignes.  
-    """
+    df = df.drop_duplicates()
     df = df.dropna(subset=liste_colonnes)
-
+    
     return df
+
 
 # Fonction pour remplir les valeurs manquantes de certaines variables en fonction de la marque, du modèle et du mouvement
 def remplissage(df, variable):
     """
-    Il s'avère que certaines informations des montres sont belles et bien existantes mais ne sont pas renseignées par les vendeurs. 
-    Cette fonctions a pour but de renseigner les valeurs manquantes de certaines variables sur la base de lignes ayant les caractéristiques similaires à savoir :
+    Il s'avère que certaines caractéristiques des montres sont belles et bien existantes mais ne sont pas renseignées par les vendeurs. 
+    Cette fonctions a pour but de renseigner les valeurs manquantes de ces caractéristiques sur la base de lignes ayant les caractéristiques similaires à savoir :
         - La marque
         - Le modèle 
         - Le mouvement
@@ -222,7 +210,7 @@ def suppression_lignes_vides_suite(df, liste_colonnes, colonnes_a_supp, colonne)
         pd.DataFrame : DataFrame modifié.  
     """
     
-    df = df.dropna(subset=liste_colonnes)
+
     df = df[df[colonne] != '[]']
     df = df.drop(columns=colonnes_a_supp)
     df = df.dropna(subset=liste_colonnes)
@@ -246,7 +234,7 @@ def traitement_marque(df, colonne):
         pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
     df[colonne] = df[colonne].astype(str)
-    marque = [i.replace('&', '') for i in df['colonne']]
+    marque = [i.replace('&', '') for i in df[colonne]]
     marque = [i.strip("['").strip("']")for i in marque]
     marque = [i.replace(',','') for i in marque]
     marque = [i.replace("''",'').replace(" ",'').replace("''",'_').replace('-','_') for i in marque]
@@ -300,19 +288,23 @@ def traitement_mouvement(df, colonne):
     
     Returns:
         pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
-    """
-    mapping = {"['28000', 'A/h']": "automatique",
-            "REMONTAGE''AUTOMATIQUE": "automatique",
-            "REMONTAGE''MANUEL" : "manuel"
-            } 
+    """        
             
-            
-    df[colonne] = df[colonne].replace(mapping)
+    
     mouvement = [i.strip("['").strip("']").replace(',','').replace(' ','') for i in df[colonne]]
     mouvement = [i.upper() for i in mouvement]
     df[colonne] = mouvement
     df[colonne] = df[colonne].astype('category')
 
+    mapping = {"28000''A/H": "AUTOMATIQUE",
+           "REMONTAGE''AUTOMATIQUE": "AUTOMATIQUE",
+           "REMONTAGE''MANUEL" : "AUTOMATIQUE"
+           } 
+    
+    df[colonne] = df[colonne].replace(mapping)
+           
+           
+    df['mouvement'] = df['mouvement'].replace(mapping)
     return df
             
 
@@ -337,7 +329,7 @@ def traitement_matiere_bracelet(df, colonne):
                         'BRUN','BLANC','VERT','GRIS','BLEU','BORDEAUX',
                         'BEIGE',"['BRACELET']","['DU', 'BRACELET']",
                         "['DU', 'BRACELET', 'BRUN']","['DU', 'BRACELET', 'BLEU']",
-                        "['DU', 'BRACELET', 'NOIR']"]
+                        "['DU', 'BRACELET', 'NOIR']", "['NOIR']"]
     df[colonne] = df[colonne].replace(valeurs_a_remplacer, "INCONNUE")
 
     mapping = {"['ACIER']" : "ACIER",
@@ -368,6 +360,7 @@ def traitement_matiere_bracelet(df, colonne):
         
     }
     df[colonne] = df[colonne].replace(mapping)
+    df[colonne] = df[colonne].str.replace('[\'DU\', \'BRACELET\', \'CUIR\', "D\'AUTRUCHE"]','CUIR_AUTRUCHE' )
     
     return df
 
@@ -491,15 +484,19 @@ def traitement_sexe(df, colonne):
     Returns:
         pd.DataFrame : Le DataFrame contenant la colonne après traitement. 
     """
-    mapping = {"HOMME/UNISEXE":"HOMME",
-           "['MONTRE', 'HOMME/UNISEXE']":"HOMME",
-           "['MONTRE', 'FEMME']":"FEMME"  
-    }
     
-    df[colonne] = df[colonne].replace(mapping)
+    
     sexe = [i.upper() for i in df[colonne]]
     df[colonne] = sexe
     df[colonne] = df[colonne].astype('category')
+    
+    mapping = {"['homme/Unisexe']":"HOMME",
+            "homme/Unisexe" : 'HOMME' ,
+           "['Montre', 'homme/Unisexe']" : "HOMME",
+           "['Montre', 'femme']":"FEMME" 
+    }
+
+    df[colonne] = df[colonne].replace(mapping)
     
     return df
 
@@ -672,7 +669,30 @@ def traitement_matiere_verre(df, colonne):
     matiere_verre = [i.upper() for i in matiere_verre]
     df[colonne] = matiere_verre
     df[colonne] = df[colonne].astype('category')
+    
+    mapping = {
+        "VERRE, SAPHIR" : "SAPHIR",
+        "VERRE, MINÉRAL" : "MINÉRAL"
+    }
+    
+    df[colonne] = df[colonne].replace(mapping)
         
+    return df
+
+def traitement_boucle(df, colonne):
+    """Fonction pour le traitement de la colonne boucle.
+
+    Args:
+        df (pd.DataFrame): DataFrame contenant la variable
+        colonne (str): Nom de la colonne
+
+    Returns:
+        pd.DataFrame: Retourne le DataFrame modifié. 
+    """
+    boucle = [i.strip(",").replace("[","").replace("]","").replace("'","").replace(",","").replace(" ","_") for i in df[colonne]]
+    boucle = [i.upper() for i in boucle]
+    df[colonne] = boucle
+    df[colonne] = df[colonne].astype('category')
     return df
 
 def traitement_matiere_boucle(df, colonne):
@@ -689,8 +709,9 @@ def traitement_matiere_boucle(df, colonne):
     """
     matiere_boucle = [i.strip(",").replace("[","").replace("]","").replace("'","").replace(",","").replace(" ","_").replace("/","_") for i in df['matiere_boucle']]
     matiere_boucle = [i.upper() for i in matiere_boucle]
-    df['matiere_boucle'] = matiere_boucle
-    df['matiere_boucle'] = df['matiere_boucle'].astype('category')
+    df[colonne] = matiere_boucle
+    df[colonne] = df['matiere_boucle'].astype('category')
+    df[colonne] = df['matiere_boucle'].str.replace('DE_LA_LUNETTE_','').str.replace('DE_LA_BOUCLE_','').str.replace('MATIÈRE_','')
     
     return df
 
@@ -728,3 +749,18 @@ def traitement_ville(df, colonne):
     df['pays'] = df['pays'].replace(mapping)
     
     return df
+
+def traitement_complication_date(df,colonne_1, colonne_2):
+    """Fonction pour le traitement des colonnes Complication et Date de récupération
+
+    Args:
+        colonne_1 (str): Nom de la première colonne --> 'Complications'
+        colonne_2 (str): Nom de la deuxième colonne --> 'Date_recup'
+    Returns:
+        pd.DataFrame: Le DataFrame modifié. 
+    """
+    df[colonne_1].astype('category')
+    df[colonne_2] = pd.to_datetime(df[colonne_2], errors ='coerce')
+    
+    return df
+    
