@@ -18,8 +18,8 @@ from fuzzywuzzy import process
 
 def suppression(df, liste_colonnes):
     """
-    Supprimme les doublons dans le DataFrame sur la base d'une liste de colonnes. 
-    Fonction pour supprimer les NaN sur la base de certaines colonnes dont il est difficile de retrouver l'information. 
+    Fonction pour supprimmer les doublons dans le DataFrame sur la base d'une liste de colonnes définie. 
+    Permet également de supprimer les lignes vides sur la base de certaines colonnes dont il est difficile de retrouver l'information. 
     
     Args:
         df(pd.Dataframe) : Le Dataframe contenant les colonnes. 
@@ -33,12 +33,10 @@ def suppression(df, liste_colonnes):
     
     return df
 
-
-# Fonction pour remplir les valeurs manquantes de certaines variables en fonction de la marque, du modèle et du mouvement
 def remplissage(df, variable):
     """
     Il s'avère que certaines caractéristiques des montres sont belles et bien existantes mais ne sont pas renseignées par les vendeurs. 
-    Cette fonctions a pour but de renseigner les valeurs manquantes de ces caractéristiques sur la base de lignes ayant les caractéristiques similaires à savoir :
+    Cette fonction a pour but de renseigner les valeurs manquantes de ces caractéristiques sur la base de lignes ayant les caractéristiques similaires à savoir :
         - La marque
         - Le modèle 
         - Le mouvement
@@ -68,7 +66,7 @@ def remplissage_mouvement(df, variable):
         - La marque 
         - Le modèle 
         - mouvement == '[]'
-        
+    
 
     Args:
         df (pd.DataFrame): DataFrame contenant la variable à traiter
@@ -87,12 +85,17 @@ def remplissage_mouvement(df, variable):
             ]
             if not similar_rows.empty:
                 df.at[index, variable] = similar_rows[variable].iloc[0]
+    
+    for index, row in df.iterrows():
+        if row[variable] == '[]':
+            df.at[index, variable] = 'Quartz'
+            
     return df
 
 def remplissage_reserve_marche(df, variable):
     """
     Fonction pour remplir la colonne 'Reserve de marche'. 
-    Sur la base de la colonne contenant l'information sur le rouage, on peut déduire si la montre possède une réserve de marche. 
+    Sur la base de la colonne contenant l'information sur le rouage, on peut déduire si la montre possède une réserve de marche ou pas. 
     La colonne rouage nous indique si la montre possède un mouveemnt Quartz. Si c'est le cas, alors, on peut déduire qu'il n'y a pas de réserve de marche. 
 
     Args:
@@ -116,6 +119,13 @@ def remplissage_reserve_marche(df, variable):
                 # Gérer les cas où row['rouage'] n'est pas une chaîne de caractères (par exemple, NaN ou float)
                 # Vous pouvez soit ignorer ces lignes, soit les gérer différemment selon vos besoins
                 continue
+    
+    # Utiliser des opérations vectorisées pour identifier les lignes à modifier
+    masque = (df[variable].isna()) & (df['mouvement'] == 'Quartz')
+    
+    # Appliquer la valeur 'Pas_de_reserve' aux lignes identifiées
+    df.loc[masque, variable] = 'Pas_de_reserve'
+    
     return df
 
 
@@ -145,23 +155,6 @@ def count_functions(fonction_string):
     else:
         return 'Non_renseignée'
     
-
-def remplissage_mouvement_bis(df, variable):
-    """
-    Autre fonction pour remplir la colonne 'Mouvement'
-
-    Args:
-        df (pd.DatFrame): DataFrame contenant la colonne à traiter. 
-        variable (str): La colonne à traiter. 
-
-    Returns:
-        pd.DataFrame: DataFrame final. 
-    """
-    for index, row in df.iterrows():
-        if row[variable] == '[]':
-            df.at[index, variable] = 'Quartz'
-    return df
-    
     
 def remplissage_mat_verre(df, variable):
     """
@@ -179,23 +172,6 @@ def remplissage_mat_verre(df, variable):
             df.at[index, variable] = 'Inconnue'
     return df
 
-def remplissage_reserve_marche_bis(df, variable):
-    """Fonction pour renseigner la colonne 'Reserve de marche'
-
-    Args:
-        df (pd.DataFrame): DataFrame contenant la colonne à traiter. 
-        variable (str): Colonne à traiter. 
-
-    Returns:
-        pd.DataFrame: DataFrame final. 
-    """
-    # Utiliser des opérations vectorisées pour identifier les lignes à modifier
-    masque = (df[variable].isna()) & (df['mouvement'] == 'Quartz')
-    
-    # Appliquer la valeur 'Pas_de_reserve' aux lignes identifiées
-    df.loc[masque, variable] = 'Pas_de_reserve'
-    
-    return df
 
 def suppression_lignes_vides_suite(df, liste_colonnes, colonnes_a_supp, colonne):
     """
@@ -224,7 +200,7 @@ def traitement_marque(df, colonne):
     """
     Fonctions pour le traitement des caractères spéciaux de la colonne 'Marque'.
     On utilise également la fonction de correspondances floue pour regrouper les catégories similaires et ainsi 
-    réduire le nombre de modalité. 
+    réduire le nombre de modalités inutiles. 
     
     Arg:
         df (pd.DataFrame): DataFrame contenant la colonne.
