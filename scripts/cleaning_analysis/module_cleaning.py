@@ -16,7 +16,7 @@ from fuzzywuzzy import process
                             # NETTOYAGE PRÉLIMINAIRE. 
 ################################################################################################
 
-def suppression(df, liste_colonnes):
+def suppression(df):
     """
     Fonction pour supprimmer les doublons dans le DataFrame sur la base d'une liste de colonnes définie. 
     Permet également de supprimer les lignes vides sur la base de certaines colonnes dont il est difficile de retrouver l'information. 
@@ -27,9 +27,12 @@ def suppression(df, liste_colonnes):
     
     Returns: 
         pd.Dataframe : DataFrame sans doublons. 
-    """    
+    """ 
+    
+    liste_colonnes = ['marque','modele','mouvement']   
     df = df.drop_duplicates()
     df = df.dropna(subset=liste_colonnes)
+    df = df.iloc[:, 1:]
     
     return df
 
@@ -305,7 +308,9 @@ def traitement_matiere_bracelet(df, colonne):
                         'BRUN','BLANC','VERT','GRIS','BLEU','BORDEAUX',
                         'BEIGE',"['BRACELET']","['DU', 'BRACELET']",
                         "['DU', 'BRACELET', 'BRUN']","['DU', 'BRACELET', 'BLEU']",
-                        "['DU', 'BRACELET', 'NOIR']", "['NOIR']"]
+                        "['DU', 'BRACELET', 'NOIR']", "['NOIR']","['BRACELET','185','INCONNUE']",
+                        "['DU', 'BRACELET', 'SATIN']", "['DU', 'BRACELET', 'ROSE']",
+                        "['DU', 'BRACELET', 'VERT']"]
     df[colonne] = df[colonne].replace(valeurs_a_remplacer, "INCONNUE")
 
     mapping = {"['ACIER']" : "ACIER",
@@ -332,12 +337,14 @@ def traitement_matiere_bracelet(df, colonne):
             "['DU', 'BRACELET', 'OR', 'BLANC']":"OR_BLANC",
             "['DU', 'BRACELET', 'CUIR', 'DE', 'VACHE']":"CUIR_VACHE",
             "['DU', 'BRACELET', 'PLATINE']":"PLATINE",
+            "['DU', 'BRACELET', 'ARGENT']" :"ARGENT",
+            "['DU', 'BRACELET', 'PLAQUÉE', 'OR']":"PLAQUEE_OR",
             "CÉRAMIQUE":"CERAMIQUE"          
         
     }
     df[colonne] = df[colonne].replace(mapping)
     df[colonne] = df[colonne].str.replace('[\'DU\', \'BRACELET\', \'CUIR\', "D\'AUTRUCHE"]','CUIR_AUTRUCHE' )
-    
+    df[colonne] = df[colonne].astype('category')
     return df
 
 def traitement_matiere_boitier(df, colonne):
@@ -446,6 +453,7 @@ def traitement_etat(df, colonne):
 
 
     df[colonne] = df[colonne].replace(mapping)
+    df[colonne] = df[colonne].astype('category')
     return df
 
 def traitement_sexe(df, colonne):
@@ -611,7 +619,7 @@ def traitement_matiere_lunette(df, colonne):
     df[colonne] = df[colonne].replace(valeurs_a_remplacer, 'Indetermine')
     matiere_lunette = [i.replace("/","_").upper() for i in df[colonne]]
     df[colonne] = matiere_lunette
-    df[colonne] = df[colonne].astype('category')
+    
     
     def extract_matter(val):
         # Vérifier si la valeur est une liste sous forme de chaîne
@@ -626,6 +634,8 @@ def traitement_matiere_lunette(df, colonne):
 
     matiere_lunette = [extract_matter(val) for val in df[colonne]]
     df[colonne] = matiere_lunette
+    df[colonne] = df[colonne].str.replace('LISSE)', 'Indetermine')
+    df[colonne] = df[colonne].astype('category')
     
     return df
 
@@ -689,6 +699,7 @@ def traitement_matiere_boucle(df, colonne):
     df[colonne] = matiere_boucle
     df[colonne] = df['matiere_boucle'].astype('category')
     df[colonne] = df['matiere_boucle'].str.replace('DE_LA_LUNETTE_','').str.replace('DE_LA_BOUCLE_','').str.replace('MATIÈRE_','')
+    df[colonne] = df[colonne].astype('category')
     
     return df
 
