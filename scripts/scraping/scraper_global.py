@@ -183,16 +183,29 @@ def recuperation_donnees(lien, nb_page=0):
             except NoSuchElementException:
                 continue
         
-        # Passer à la page suivante
-        try:
-            driver.find_element(By.PARTIAL_LINK_TEXT, "Continuer").click() 
+        if c < longueur:
+            continue
+        elif c == longueur:
             time.sleep(5)
+            driver.find_element(By.PARTIAL_LINK_TEXT, "Continuer").click() 
+            current_url = driver.current_url
+            driver.get(current_url)
+            time.sleep(5)
+              
             c = 0
+            try:
+                page_globale_montre = driver.find_element(By.ID, 'wt-watches')
+                liste_montres = page_globale_montre.find_elements(By.CLASS_NAME, 'js-article-item-container')
+                longueur = len(liste_montres)
+                print('La longueur de la liste est :', longueur)
+            except NoSuchElementException:
+                continue
+            
             page += 1
-            print(f'Nous sommes à la page : {page}')
-        except NoSuchElementException:
-            print('La récupération est terminée.')
-            break
+            print('Nous sommes à la page :', page)
+            
+            if page == nb_page:
+                break
             
     driver.quit()
 

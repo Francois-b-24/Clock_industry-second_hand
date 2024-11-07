@@ -132,7 +132,7 @@ def remplissage_reserve_marche(df, variable):
     return df
 
 
-def count_functions(fonction_string):
+def count_functions(df, variable):
     
     """
     Fonctions pour le comptage du nombre de complications.
@@ -157,6 +157,7 @@ def count_functions(fonction_string):
         return len(fonctions_list)
     else:
         return 'Non_renseignée'
+    return df
     
     
 def remplissage_mat_verre(df, variable):

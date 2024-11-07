@@ -155,6 +155,7 @@ def recuperation_donnees(debut, nb_page=0):
             
             driver.back()
             
+            # Mettre à jour la liste des montres après retour à la page principale
             try:
                 page_globale_montre = driver.find_element(By.ID, 'wt-watches')
                 liste_montres = page_globale_montre.find_elements(By.CLASS_NAME, 'js-article-item-container')
@@ -184,8 +185,10 @@ def recuperation_donnees(debut, nb_page=0):
             
             if page == nb_page:
                 break
-
+    
+    driver.quit()
+    
 if __name__ == "__main__":
     create_database()
-    debut = input('Veuillez entrer le début de l\'URL (par exemple "votre_debut_ici") : ') 
+    debut = input('Veuillez entrer le numéro de page à laquelle vous souhaitez débuter (1,2,3, etc.) : ') 
     recuperation_donnees(debut)
