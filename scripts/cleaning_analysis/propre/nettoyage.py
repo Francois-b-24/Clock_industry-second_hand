@@ -10,35 +10,37 @@ class Nettoyage:
         self.df = df
     
     
-    def nettoyer_colonnes(self, majuscule=True, remplacer_nan=np.nan) -> pd.DataFrame:
+    # Nettoyage préliminaire 
+    
+    def nettoyer_colonnes(self, remplacer_nan=np.nan) -> pd.DataFrame:
+        
+        # Suppression de la date de récupération :
+        if 'Date_recup' in self.df.columns:
+            self.df.drop(columns='Date_recup', inplace=True)
+       
         for col in self.df.columns:
             # Supprimer les crochets et apostrophes dans les chaînes de caractères
             self.df[col] = self.df[col].apply(lambda x: re.sub(r"[\[\]'\"()]", '', str(x)) if isinstance(x, str) else x)
             
             # Supprimer les espaces multiples
             self.df[col] = self.df[col].apply(lambda x: re.sub(r'\s+', ' ', x).strip() if isinstance(x, str) else x)
-        
-        # Supprimer la colonne 'Date_recup' si elle existe
-        if 'Date_recup' in self.df.columns:
-            self.df.drop(columns='Date_recup', inplace=True)
+            
+            # Convertit les colonnes en majuscules : 
+            self.df[col] = self.df[col].str.upper()
+            
+            # Remplacer les valeurs NaN par la valeur spécifiée par défaut
+            self.df[col] = self.df[col].fillna(remplacer_nan)
+               
+
+            
+        # Supprimer les espaces en début et fin de chaîne si c'est une colonne de type chaîne
+        if self.df[col].dtype == 'object':
+            self.df[col] = self.df[col].str.strip()
         
         # Supprimer les doublons
         self.df.drop_duplicates(inplace=True)
-        
-        for col in self.df.columns:
-            # Remplacer les valeurs NaN par la valeur spécifiée
-            self.df[col] = self.df[col].fillna(remplacer_nan)
-            
-            # Supprimer les espaces en début et fin de chaîne si c'est une colonne de type chaîne
-            if self.df[col].dtype == 'object':
-                self.df[col] = self.df[col].str.strip()
-                
-                # Convertir en majuscule ou minuscule selon le paramètre
-                if majuscule:
-                    self.df[col] = self.df[col].str.upper()
-                else:
-                    self.df[col] = self.df[col].str.lower()
-        
+                        
+
         # Remplacer les chaînes vides et 'None' par NaN
         self.df.replace('', np.nan, inplace=True)
         self.df.replace('None', np.nan, inplace=True)
@@ -52,6 +54,14 @@ class Nettoyage:
     
     
     def remplissage(self, variable):
+        
+        """
+        Renseigne l'information manquante pour une colonne donnée, si une ligne possède la marque, le modèle
+        et un mouvement similaire. 
+
+        Returns:
+            colonne (str): Colonne pour laquelle on doit renseigner les valeurs manquantes. 
+        """
         # Grouper par 'marque', 'modele', 'mouvement' pour trouver les valeurs similaires
         groupes_similaires = self.df.groupby(['marque', 'modele', 'mouvement'])[variable]
 
@@ -63,8 +73,15 @@ class Nettoyage:
     
     
     
+    # Un peu de preprocessing 
     
     def remplissage_mouvement(self):
+        """
+        Renseigne la colonne mouvement. 
+
+        Returns:
+            None.
+        """
         # Remplacer les listes vides par des NaN (si applicable, sinon cette étape peut être ignorée)
         self.df['mouvement'] = self.df['mouvement'].apply(lambda x: np.nan if isinstance(x, list) and not x else x)
 
@@ -80,7 +97,14 @@ class Nettoyage:
     
     
     def remplissage_reserve_marche(self):
-        # Remplir 'Pas_de_reserve' pour les lignes où 'rouage' commence par 'Quar' ou 'ETA' et où 'variable' est NaN ou vide
+        """
+        Renseigne la colonne 'reserve de marche'.
+
+        Returns:
+            None.
+        """
+        
+        # Remplir 'Pas_de_reserve' pour les lignes où 'rouage' commence par 'Quar' ou 'ETA' et où 'reserve de marche' est NaN ou vide
         masque_quartz_eta = (
             (self.df['reserve_de_marche'].isna() | (self.df['reserve_de_marche'] == '')) &  # Si 'variable' est manquant ou vide
             self.df['rouage'].apply(lambda x: isinstance(x, str) and (x.startswith('Quar') or x.startswith('ETA')))  # Vérifier 'rouage'
@@ -95,7 +119,7 @@ class Nettoyage:
     
     
 
-    def count_functions(self, fonction_string):
+    def comptage_fonctions(self, fonction_string):
         """
         Compte le nombre de complications ou fonctions dans une chaîne donnée.
 
@@ -105,20 +129,22 @@ class Nettoyage:
         Returns:
             int ou str: Le nombre de fonctions trouvées, ou 'Non_renseignée' si aucune information.
         """
-        if pd.isna(fonction_string):
+        if not isinstance(fonction_string, str) or pd.isna(fonction_string):
             return 0
-        if 'Fonctions\n' in fonction_string:
-            fonctions_part = fonction_string.split('Fonctions\n')[1]
-            fonctions_list = [func.strip() for func in fonctions_part.split(',')]
-            return len(fonctions_list)
-        elif 'Autres\n' in fonction_string:
-            fonctions_part = fonction_string.split('Autres\n')[1]
-            fonctions_list = [func.strip() for func in fonctions_part.split(',')]
-            return len(fonctions_list)
-        else:
-            return 'Non_renseignée'
+    
+        # Liste des mots-clés à rechercher pour les fonctions
+        mots_clefs = ['Fonctions\n', 'Autres\n']
+        
+        for mots in mots_clefs:
+            if mots in fonction_string:
+                fonctions_part = fonction_string.split(mots)[-1]
+                fonctions_list = [func.strip() for func in fonctions_part.split(',') if func.strip()]
+                return len(fonctions_list)
+        
+        return 'Non_renseignée'
 
-    def add_function_count_column(self, column_name):
+
+    def compteur_complications(self, column_name):
         """
         Ajoute une colonne au DataFrame contenant le nombre de fonctions pour chaque entrée.
 
@@ -128,13 +154,15 @@ class Nettoyage:
         Returns:
             pd.DataFrame: DataFrame mis à jour avec une nouvelle colonne de comptage.
         """
-        self.df[f'comptage_{column_name}'] = self.df[column_name].apply(self.count_functions)
+        self.df[f'comptage_{column_name}'] = self.df[column_name].apply(self.comptage_fonctions)
         return self.df
         
     
 
     def suppression_colonnes(self):
-        """Fonctions pour supprimer les colonnes inutiles"
+        """
+        Fonctions pour supprimer les colonnes inutiles
+        
         Args:
             df (pd.DataFarme): DataFrame contenant les colonnes à traiter. 
             liste_colonnes (list): Liste des colonnes à traiter.
@@ -148,14 +176,14 @@ class Nettoyage:
         return self.df
     
     
+    # Transformation des colonnes dans un format adéquat :
+    
     
     def nettoyage_marque(self):
         marque = [i.replace(', ', '-').replace('.','') for i in self.df['marque']]
         self.df['marque'] = marque
         
 
-    
-    
     def nettoyage_modele(self):
         modele = [i.replace(',','').replace(' ','-') for i in self.df['modele']]
         self.df['modele'] = modele
@@ -185,25 +213,21 @@ class Nettoyage:
     def extraire_matiere(self,chaine):
         matières = ["acier", "or/acier", "cuir", "textile", "titane", "caoutchouc", "bronze",
             "silicone", "vache", "autruche", "bronze","plastique", "platine", "céramique","or",
-            "aluminium", "argentt", "requin", "caoutchouc", "plastique", "silicone", 
+            "aluminium", "argent", "requin", "caoutchouc", "plastique", "silicone", 
             "céramique", "satin"]
         
         if isinstance(chaine, str):  # Vérifier si la chaîne est une chaîne de caractères
             for matiere in matières:
                 if matiere.lower() in chaine.lower():
                     return matiere.upper()
-        return 'INCONNUE'
-    
-    
+        return np.nan
     
     
     def extraction_matiere_bracelet(self, column_name):
         self.df[f'{column_name}'] = self.df[column_name].apply(self.extraire_matiere)
         return self.df
     
-    
-    
-    
+     
     def nettoyage_matiere_boitier(self, chaine):
         if isinstance(chaine, str):  # Vérifier si la variable est une chaîne
             # Remplacer les barres obliques par des virgules avec espaces
@@ -216,7 +240,7 @@ class Nettoyage:
             chaine = chaine.replace(', ', '_')
             return chaine
         else:
-            return 'INCONNUE'  # Retourner 'INCONNUE' si ce n'est pas une chaîne
+            return np.nan  # Retourner 'INCONNUE' si ce n'est pas une chaîne
     
     
     
@@ -260,7 +284,7 @@ class Nettoyage:
     
 
     
-    # Fonction pour regrouper l'état d'une chaîne dans une catégorie restreinte
+    
     
     def regrouper_état(self, chaine):
             # Dictionnaire de correspondance entre les états et des catégories restreintes
@@ -336,6 +360,7 @@ class Nettoyage:
         self.df['prix'] = self.df['prix'].apply(self.extraire_elements_avant_euro)
         return self.df
 
+    
     def nettoyer_valeurs(self, colonne):
         """
         Nettoie et convertit les éléments de la colonne spécifiée en nombres.
@@ -373,7 +398,7 @@ class Nettoyage:
     
     
     
-    def extraire_chiffre(self, chaine):
+    def extraction_int(self, chaine):
         """
         Extrait le premier chiffre entier trouvé dans une chaîne de caractères.
 
@@ -396,42 +421,16 @@ class Nettoyage:
             pd.DataFrame: DataFrame mis à jour avec la colonne 'reserve_de_marche' modifiée.
         """
         # Utiliser directement apply avec extraire_chiffre pour plus de clarté
-        self.df['reserve_de_marche'] = self.df['reserve_de_marche'].apply(self.extraire_chiffre)
+        self.df['reserve_de_marche'] = self.df['reserve_de_marche'].apply(self.extraction_int)
         return self.df
     
     def extraction_chiffres_etencheite(self):
-        self.df['etencheite'] = self.df['etencheite'].apply(self.extraire_chiffre)
+        self.df['etencheite'] = self.df['etencheite'].apply(self.extraction_int)
         return self.df
 
     def extraction_chiffres_diametre(self):
-        self.df['diametre'] = self.df['diametre'].apply(self.extraire_chiffre)
+        self.df['diametre'] = self.df['diametre'].apply(self.extraction_int)
         return self.df
-
-
-    #def extraire_matiere_(self, chaine):
-        # Liste des matières à rechercher
-       # matières = ['ACIER', 'ROSE', 'JAUNE', 'CÉRAMIQUE', 'TITANE', 'BRONZE',
-       #         'ALUMINIUM', 'BLANC', 'PLATINE', 'OR/ACIER', 'ARGENT', 'PLASTIQUE',
-       #         'TUNGSTÈNE', 'ROUGE', 'CARBONE', 'OR', 'OR, BLANC', 'OR, ROSE', 'OR, JAUNE', 'PLAQUÉE, OR', 
-       #         'CÉRAMIQUE, FONCÉE', 'LUNETTE, LISSE', 'OR, ROUGE', 
-       #         'ACIER', 'OR, ROSE', 'OR, JAUNE', 'CÉRAMIQUE', 'TITANE', 'BRONZE',
-       #         'ALUMINIUM', 'OR, BLANC', 'PLATINE', 'OR/ACIER', 'ARGENT',
-       #         'MATIÈRE, PLASTIQUE', 'PLASTIQUE', None, 'TUNGSTÈNE', 'OR, ROUGE',
-       #         'CARBONE', 'PLAQUÉE, OR']
-    
-       # if pd.isna(chaine):  # Vérifier si la chaîne est None ou NaN
-       #     return np.nan
-        
-        # Mettre la chaîne en majuscules pour faciliter la recherche
-       # chaine = chaine.upper()
-        
-        # Rechercher chaque matière dans la chaîne
-       # for matiere in matières:
-        #    if matiere in chaine:
-        #        return matiere  # Retourner la première matière trouvée
-        
-       # return np.nan 
-
 
     def extraction_matiere_lunette(self):
         self.df['matiere_lunette'] = self.df['matiere_lunette'].apply(self.extraire_matiere)
@@ -442,15 +441,20 @@ class Nettoyage:
         return self.df
         
     def nettoyage_matiere_verre_et_boucle(self):
-        mapping = {
+        mapping_verre = {
         'VERRE SAPHIR' : 'SAPHIR',
         'VERRE, MINÉRAL' : 'MINÉRAL',
         'MATIÈRE, PLASTIQUE':'PLASTIQUE',
         'VERRE, SAPHIR':'SAPHIR'
             }
+        
+        mapping_boucle = {
+            "PLIS,_COUVERT" : "PLIS"
+        }
     
-        self.df['matiere_verre'] = self.df['matiere_verre'].replace(mapping)
+        self.df['matiere_verre'] = self.df['matiere_verre'].replace(mapping_verre)
         self.df['boucle'] = self.df['boucle'].str.replace(', ','_')
+        self.df['boucle'] = self.df['boucle'].replace(mapping_boucle)
         return self.df
     
     def nettoyage_ville(self):
