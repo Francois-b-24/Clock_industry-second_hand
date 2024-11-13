@@ -133,7 +133,7 @@ class Nettoyage:
             return 0
     
         # Liste des mots-clés à rechercher pour les fonctions
-        mots_clefs = ['Fonctions\n', 'Autres\n']
+        mots_clefs = ['FONCTIONS', 'AUTRES']
         
         for mots in mots_clefs:
             if mots in fonction_string:
@@ -463,6 +463,7 @@ class Nettoyage:
         self.df['pays'] = pays
         
         mapping = {
+            "GRANDE-BRETAGNE": 'ROYAUME-UNI',
             'AFRIQUE': 'AFRIQUE_DU_SUD',
             'RÉPUBLIQUE' : 'RÉPUBLIQUE_TCHEQUE',
             'HONG' : 'HONG_KONG',
