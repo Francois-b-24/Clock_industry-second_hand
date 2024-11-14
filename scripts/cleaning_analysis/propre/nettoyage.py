@@ -3,13 +3,12 @@ import numpy as np
 import re
 from datetime import datetime
 from collections import defaultdict
-import math
+
 
 class Nettoyage:
     def __init__(self, df):
         self.df = df
-    
-    
+
     # Nettoyage préliminaire 
     
     def nettoyer_colonnes(self, remplacer_nan=np.nan) -> pd.DataFrame:
@@ -73,14 +72,14 @@ class Nettoyage:
     
     
     
-    # Un peu de preprocessing 
+    # Un peu de preprocessing sur les variables
     
     def remplissage_mouvement(self):
         """
         Renseigne la colonne mouvement. 
 
         Returns:
-            None.
+            pd.DataFrame
         """
         # Remplacer les listes vides par des NaN (si applicable, sinon cette étape peut être ignorée)
         self.df['mouvement'] = self.df['mouvement'].apply(lambda x: np.nan if isinstance(x, list) and not x else x)
@@ -101,7 +100,7 @@ class Nettoyage:
         Renseigne la colonne 'reserve de marche'.
 
         Returns:
-            None.
+            pd.DataFrame
         """
         
         # Remplir 'Pas_de_reserve' pour les lignes où 'rouage' commence par 'Quar' ou 'ETA' et où 'reserve de marche' est NaN ou vide
@@ -179,18 +178,17 @@ class Nettoyage:
     # Transformation des colonnes dans un format adéquat :
     
     
-    def nettoyage_marque(self):
+    def mise_en_forme(self):
+        # Marque 
         marque = [i.replace(', ', '-').replace('.','') for i in self.df['marque']]
         self.df['marque'] = marque
         
-
-    def nettoyage_modele(self):
+        # Modèle
         modele = [i.replace(',','').replace(' ','-') for i in self.df['modele']]
         self.df['modele'] = modele
-    
-    
-    
-    def nettoyage_mouvement(self):
+        
+        # Mouvement 
+        
         mapping = {"FOND, TRANSPARENT,, INDICATION, DE, LA, RÉSERVE, DE, MARCHE,, ÉTAT, DORIGINE/PIÈCES, ORIGINALES,, COUCHE, PVD/DLC" : "AUTOMATIQUE",
            
         "28000, A/H": "AUTOMATIQUE",
@@ -204,29 +202,90 @@ class Nettoyage:
            
            
         self.df['mouvement'] = self.df['mouvement'].replace(mapping)
-    
-        return self.df
-    
-    
-    
-    
-    def extraire_matiere(self,chaine):
-        matières = ["acier", "or/acier", "cuir", "textile", "titane", "caoutchouc", "bronze",
-            "silicone", "vache", "autruche", "bronze","plastique", "platine", "céramique","or",
-            "aluminium", "argent", "requin", "caoutchouc", "plastique", "silicone", 
-            "céramique", "satin"]
         
-        if isinstance(chaine, str):  # Vérifier si la chaîne est une chaîne de caractères
+        # Sexe
+        
+        mapping_sexe = {"HOMME/UNISEXE":"HOMME",
+           "MONTRE HOMME/UNISEXE":"HOMME",
+           "MONTRE, FEMME":"FEMME",
+           "MONTRE, HOMME/UNISEXE":"HOMME"  
+           }
+
+        self.df['sexe'] = self.df['sexe'].replace(mapping_sexe)
+        
+        # Matière verre et boucle
+        mapping_verre = {
+        'VERRE SAPHIR' : 'SAPHIR',
+        'VERRE, MINÉRAL' : 'MINÉRAL',
+        'MATIÈRE, PLASTIQUE':'PLASTIQUE',
+        'VERRE, SAPHIR':'SAPHIR'
+            }
+        
+        mapping_boucle = {
+            "PLIS,_COUVERT" : "PLIS"
+        }
+    
+        self.df['matiere_verre'] = self.df['matiere_verre'].replace(mapping_verre)
+        self.df['boucle'] = self.df['boucle'].str.replace(', ','_')
+        self.df['boucle'] = self.df['boucle'].replace(mapping_boucle)
+        
+        # ville
+        
+        pays = [i.split(',')[0].strip() if isinstance(i, str) else 'INCONNU' for i in self.df['ville']]
+        self.df = self.df.drop(columns=['ville'])
+        self.df['pays'] = pays
+        
+        mapping = {
+            "GRANDE-BRETAGNE": 'ROYAUME-UNI',
+            'AFRIQUE': 'AFRIQUE_DU_SUD',
+            'RÉPUBLIQUE' : 'RÉPUBLIQUE_TCHEQUE',
+            'HONG' : 'HONG_KONG',
+            'VIÊT' : 'VIETNAM',
+            'PORTO' : 'PORTUGAL',
+            'E.A.U.' : 'EMIRAT_ARABE_UNIS',
+            'SRI': 'SRI_LANKA',
+            'ARABIE' : 'ARABIE_SAOUDITE' 
+        }
+
+        self.df['pays'] = self.df['pays'].replace(mapping)
+        
+        return self.df
+        
+     
+    def extraire_matiere(self, chaine):
+        matières = [ "oracier", "acier", "cuir", "textile", "titane", "caoutchouc", "bronze",
+            "silicone", "vache", "dautruche", "bronze","plastique", "platine", "céramique","or",
+            "aluminium", "argent", "requin", "caoutchouc", "plastique", "silicone", 
+            "céramique", "satin", "blanc", "requin", "agenté", "rose", "jaune",
+            "rouge", "tungstène", "palladium","lisse","carbone", "plaquée"]
+
+        if isinstance(chaine, str): # Vérifier si la chaîne est une chaîne de caractères
+            chaine = chaine.replace('/', "").lower()
             for matiere in matières:
-                if matiere.lower() in chaine.lower():
+                if matiere in chaine:
                     return matiere.upper()
         return np.nan
     
     
-    def extraction_matiere_bracelet(self, column_name):
-        self.df[f'{column_name}'] = self.df[column_name].apply(self.extraire_matiere)
+    def matiere(self):
+        self.df['matiere_bracelet'] = self.df['matiere_bracelet'].apply(self.extraire_matiere)
+        self.df['matiere_lunette'] = self.df['matiere_lunette'].apply(self.extraire_matiere)
+        self.df['matiere_boucle'] = self.df['matiere_boucle'].apply(self.extraire_matiere)
         return self.df
     
+    def mapping_matiere(self):
+        mapping_matiere = {"ORACIER": "OR_ACIER",
+           "DAUTRUCHE": "CUIR_AUTRUCHE",
+           "BLANC":"OR_BLANC",
+           "ROSE":"OR_ROSE",
+           "VACHE":"CUIRE_DE_VACHE",
+           "JAUNE":"OR_JAUNE",
+           "ROUGE":"OR_ROUGE"    
+        }       
+        self.df['matiere_bracelet'] = self.df['matiere_bracelet'].replace(mapping_matiere)
+        self.df['matiere_lunette'] = self.df['matiere_lunette'].replace(mapping_matiere)
+        self.df['matiere_boucle'] = self.df['matiere_boucle'].replace(mapping_matiere)
+        return self.df
      
     def nettoyage_matiere_boitier(self, chaine):
         if isinstance(chaine, str):  # Vérifier si la variable est une chaîne
@@ -249,7 +308,9 @@ class Nettoyage:
         return self.df
     
     
+    
     def extraction_annee(self, valeur):
+    # Utiliser une regex pour chercher un nombre à 4 chiffres (une année)
         """
         Extrait une année au format AAAA (entre 1900 et 2099) à partir d'une chaîne.
 
@@ -260,7 +321,11 @@ class Nettoyage:
             int ou NaN: L'année trouvée en tant qu'entier, ou NaN si aucune année n'est trouvée.
         """
         match = re.search(r'\b(19|20)\d{2}\b', str(valeur))
-        return int(match.group(0)) if match else np.nan
+        if match:
+            return match.group(0)  # Si une année est trouvée, la retourner
+        else:
+            return np.nan  # Si aucune année n'est trouvée
+    
 
     def application_extraction_annee(self):
         """
@@ -271,21 +336,7 @@ class Nettoyage:
         """
         self.df['annee_prod'] = self.df['annee_prod'].apply(self.extraction_annee)
         return self.df
-    
-    def nettoyage_sexe(self):
-        mapping = {"HOMME/UNISEXE":"HOMME",
-           "MONTRE HOMME/UNISEXE":"HOMME",
-           "MONTRE, FEMME":"FEMME",
-           "MONTRE, HOMME/UNISEXE":"HOMME"  
-           }
-
-        self.df['sexe'] = self.df['sexe'].replace(mapping)
-        return self.df
-    
-
-    
-    
-    
+        
     def regrouper_état(self, chaine):
             # Dictionnaire de correspondance entre les états et des catégories restreintes
         catégories_état = {
@@ -413,66 +464,17 @@ class Nettoyage:
         match = re.search(r'\d+', chaine)
         return int(match.group()) if match else np.nan
 
-    def extraction_chiffres_reserve_de_marche(self):
+    def extraction_integer(self):
         """
-        Extrait le premier nombre entier de la colonne 'reserve_de_marche' et l'ajoute sous forme d'entier.
+        Extrait le premier nombre entier de la colonne et l'ajoute sous forme d'entier.
         
         Returns:
-            pd.DataFrame: DataFrame mis à jour avec la colonne 'reserve_de_marche' modifiée.
+            pd.DataFrame: DataFrame mis à jour avec la colonnemodifiée.
         """
         # Utiliser directement apply avec extraire_chiffre pour plus de clarté
         self.df['reserve_de_marche'] = self.df['reserve_de_marche'].apply(self.extraction_int)
-        return self.df
-    
-    def extraction_chiffres_etencheite(self):
         self.df['etencheite'] = self.df['etencheite'].apply(self.extraction_int)
-        return self.df
-
-    def extraction_chiffres_diametre(self):
         self.df['diametre'] = self.df['diametre'].apply(self.extraction_int)
-        return self.df
-
-    def extraction_matiere_lunette(self):
-        self.df['matiere_lunette'] = self.df['matiere_lunette'].apply(self.extraire_matiere)
+        
         return self.df
     
-    def extraction_matiere_boucle(self):
-        self.df['matiere_boucle'] = self.df['matiere_boucle'].apply(self.extraire_matiere)
-        return self.df
-        
-    def nettoyage_matiere_verre_et_boucle(self):
-        mapping_verre = {
-        'VERRE SAPHIR' : 'SAPHIR',
-        'VERRE, MINÉRAL' : 'MINÉRAL',
-        'MATIÈRE, PLASTIQUE':'PLASTIQUE',
-        'VERRE, SAPHIR':'SAPHIR'
-            }
-        
-        mapping_boucle = {
-            "PLIS,_COUVERT" : "PLIS"
-        }
-    
-        self.df['matiere_verre'] = self.df['matiere_verre'].replace(mapping_verre)
-        self.df['boucle'] = self.df['boucle'].str.replace(', ','_')
-        self.df['boucle'] = self.df['boucle'].replace(mapping_boucle)
-        return self.df
-    
-    def nettoyage_ville(self):
-        pays = [i.split(',')[0].strip() if isinstance(i, str) else 'INCONNU' for i in self.df['ville']]
-        self.df = self.df.drop(columns=['ville'])
-        self.df['pays'] = pays
-        
-        mapping = {
-            "GRANDE-BRETAGNE": 'ROYAUME-UNI',
-            'AFRIQUE': 'AFRIQUE_DU_SUD',
-            'RÉPUBLIQUE' : 'RÉPUBLIQUE_TCHEQUE',
-            'HONG' : 'HONG_KONG',
-            'VIÊT' : 'VIETNAM',
-            'PORTO' : 'PORTUGAL',
-            'E.A.U.' : 'EMIRAT_ARABE_UNIS',
-            'SRI': 'SRI_LANKA',
-            'ARABIE' : 'ARABIE_SAOUDITE' 
-        }
-
-        self.df['pays'] = self.df['pays'].replace(mapping)
-        return self.df
