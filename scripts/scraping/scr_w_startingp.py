@@ -40,7 +40,8 @@ def create_database():
                  rouage TEXT,
                  ville TEXT,
                  fonctions TEXT,
-                 Date_recup DATE
+                 Date_recup DATE,
+                 descriptions TEXT
                  )''')
     conn.commit()
     conn.close()
@@ -48,11 +49,11 @@ def create_database():
 create_database()
 
 
-def insert_data(marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup):
+def insert_data(marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup, descriptions):
     conn = sqlite3.connect('/Users/f.b/Desktop/Data_Science/Clock_industry/Scripts/Data/montre.db')
     c = conn.cursor()
-    c.execute("INSERT INTO montre (marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", 
-              (marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup))
+    c.execute("INSERT INTO montre (marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup, descriptions) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", 
+              (marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup, descriptions))
     conn.commit()
     conn.close()
 
@@ -119,7 +120,8 @@ def recuperation_donnees(debut, nb_page=0):
                 table_fonction = table.find_elements(By.TAG_NAME,'tbody') 
                 
                 fonctions = table_fonction[4].text if len(table_fonction) > 4 else ""
-
+                desc = driver.find_elements(By.TAG_NAME,'table')
+                descript = desc[1].text
                 table_caracteristiques = table.text.split('\n')
             except NoSuchElementException:
                continue
@@ -131,6 +133,8 @@ def recuperation_donnees(debut, nb_page=0):
             def extraire_caracteristique(mot_cle, decoupe):
                 return str(next((valeurs[1:] for valeurs in decoupe for elem in valeurs if elem == mot_cle), ""))
             
+            
+            descriptions = descript
             marque = extraire_caracteristique('Marque', caracteristiques_decoupage)
             modele = extraire_caracteristique('Modèle', caracteristiques_decoupage)
             mouvement = extraire_caracteristique('Mouvement', caracteristiques_decoupage)
@@ -151,7 +155,27 @@ def recuperation_donnees(debut, nb_page=0):
             ville = extraire_caracteristique('Emplacement', caracteristiques_decoupage)
             Date_recup = datetime.date.today()
             
-            insert_data(marque, modele, mouvement, matiere_boitier, matiere_bracelet, annee_prod, etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup)
+            insert_data(marque, 
+                        modele, 
+                        mouvement, 
+                        matiere_boitier, 
+                        matiere_bracelet, 
+                        annee_prod, 
+                        etat, 
+                        sexe, 
+                        prix, 
+                        reserve_de_marche, 
+                        diametre, 
+                        etencheite, 
+                        matiere_lunette, 
+                        matiere_verre, 
+                        boucle, 
+                        matiere_boucle, 
+                        rouage, 
+                        ville, 
+                        fonctions, 
+                        Date_recup,
+                        descriptions)
             
             driver.back()
             

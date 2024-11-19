@@ -14,8 +14,8 @@ class Nettoyage:
     def nettoyer_colonnes(self, remplacer_nan=np.nan) -> pd.DataFrame:
         
         # Suppression de la date de récupération :
-        if 'Date_recup' in self.df.columns:
-            self.df.drop(columns='Date_recup', inplace=True)
+        #if 'Date_recup' in self.df.columns:
+            #self.df.drop(columns='Date_recup', inplace=True)
        
         for col in self.df.columns:
             # Supprimer les crochets et apostrophes dans les chaînes de caractères
@@ -37,7 +37,7 @@ class Nettoyage:
             self.df[col] = self.df[col].str.strip()
         
         # Supprimer les doublons
-        self.df.drop_duplicates(inplace=True)
+        self.df.drop_duplicates(subset= ['marque','modele','prix','ville', 'prix'], keep = 'first', inplace = True)
                         
 
         # Remplacer les chaînes vides et 'None' par NaN
