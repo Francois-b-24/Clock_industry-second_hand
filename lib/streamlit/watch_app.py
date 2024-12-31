@@ -26,6 +26,10 @@ df['prix_log'] = np.log(df['prix'])
 # Tiens compte de la commission appliquée sur le prix de vente
 df['prix_sc'] = df['prix']*(1-0.06)
 
+# Afficher une image depuis une URL
+image_url = "https://drive.google.com/uc?id=1Mhm91okFremJYIhw3dkrMcZGeZRgUy0S"  # Remplacez par une URL d'image
+st.image(image_url, caption="", use_column_width=True)
+
 # Titre de l'application
 st.title("Analyse des montres de luxe et influence des caractéristiques sur le prix")
 
