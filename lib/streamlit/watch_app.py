@@ -106,7 +106,7 @@ else:
 
 
 
-st.header("Prix moyen observé d'un modèle en particulier")
+st.header("Prix moyen observé d'un modèle")
 # Liste des marques disponibles
 marques = df['marque'].unique()
 
