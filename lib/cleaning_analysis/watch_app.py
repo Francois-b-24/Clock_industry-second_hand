@@ -7,33 +7,21 @@ import plotly.express as px
 
 # Configuration de la mise en cache pour accélérer l'application
 @st.cache_data
-def chargement_base(path_load, path_save):
-    """Charge les données depuis une base SQLite et les sauvegarde en CSV."""
-    try:
-        # Vérifier si la base de données existe
-        if not os.path.exists(path_load):
-            st.error("La base de données SQLite est introuvable.")
-            return pd.DataFrame()
+# Lien Google Drive modifié pour le téléchargement direct
 
-        # Connexion à la base de données
-        connexion = sqlite3.connect(path_load)
-        df = pd.read_sql_query("SELECT * FROM montre", connexion)
-        connexion.close()
 
-        # Sauvegarder au format CSV
-        df.to_csv(path_save, index=False)
+try:
+    # Lire les données depuis le lien
+    url = "https://drive.google.com/uc?id=1dGaqUWsVUsIpFCR1DuRJv_Pml3Dtzyjv"
+    df = pd.read_csv(url)
 
-        # Supprimer la colonne ID
-        df = df.iloc[:, 1:]
-        return df
-    except Exception as e:
-        st.error(f"Erreur lors du chargement des données : {e}")
-        return pd.DataFrame()
-# Charger les données
-path_load = "data_app/montre.db"
-path_save = "data_app/base.csv"
+    # Afficher un message de succès et le DataFrame
+    st.success("Données chargées avec succès depuis Google Drive !")
+    st.dataframe(df)
+except Exception as e:
+    st.error(f"Erreur lors du chargement des données : {e}")
 
-df = chargement_base(path_load, path_save)
+
 
 if df.empty:
     st.error("Impossible de charger les données. Vérifiez les chemins ou la base de données.")
