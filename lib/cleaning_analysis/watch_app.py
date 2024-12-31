@@ -5,17 +5,19 @@ import sqlite3
 import numpy as np
 import plotly.express as px
 
-# Configuration de la mise en cache pour accélérer l'application
-@st.cache_data
+# Lien Google Drive modifié pour le téléchargement direct
+url = "https://drive.google.com/uc?id=1dGaqUWsVUsIpFCR1DuRJv_Pml3Dtzyjv"
 
+try:
+    # Lire les données depuis le lien
+    df = pd.read_csv(url)
 
-# Lire les données depuis le lien
-url = 'https://drive.google.com/uc?id=1dGaqUWsVUsIpFCR1DuRJv_Pml3Dtzyjv'
-df = pd.read_csv(url)
-
-# Afficher un message de succès et le DataFrame
-st.success("Données chargées avec succès depuis Google Drive !")
-st.dataframe(df)
+    # Afficher un message de succès et le DataFrame
+    st.success("Données chargées avec succès depuis Google Drive !")
+    st.dataframe(df)
+except Exception as e:
+    st.error(f"Erreur lors du chargement des données : {e}")
+    
 
 if df.empty:
     st.error("Impossible de charger les données. Vérifiez les chemins ou la base de données.")
