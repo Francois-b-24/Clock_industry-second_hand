@@ -36,12 +36,14 @@ n_lignes, n_colonnes = df.shape
 # Affichage du nombre de lignes et de colonnes
 st.write(f"La base de données contient {n_lignes} lignes et {n_colonnes} colonnes. Les données ont été récupérées sur le site chrono24. C'est une plateforme pour acheter ou vendre des montres de luxe d'occasion. En l'occurrence, la base de données contient des informations sur les montres mises en vente.")
 
+st.write("---")
 
 # 1. Affichage des données brutes
 st.header("Données")
 st.write("Voici un aperçu des données disponibles :")
 st.dataframe(df.head(10))
 
+st.write("---")
 
 # Distribution des prix et deuxième graphique
 st.subheader("Distribution des prix")
@@ -65,6 +67,7 @@ with col2:
 
 st.write('Dans le contexte de l’analyse des prix des montres, l’utilisation d’une échelle logarithmique présente plusieurs avantages : \n Gestion des variations extrêmes : Les prix des montres peuvent varier considérablement, allant de modèles abordables à des pièces de luxe très coûteuses. Une échelle logarithmique permet de compresser les valeurs élevées et d’étendre les valeurs plus faibles, offrant ainsi une vue d’ensemble plus équilibrée de la distribution des prix.')
 
+st.write("---")
 # Identifier les colonnes catégorielles et numériques
 colonnes_numeriques = df.select_dtypes(include=['number']).columns
 colonnes_categorielles = df.select_dtypes(include=['object']).columns
@@ -106,7 +109,7 @@ else:
         # Afficher le graphique dans Streamlit
     st.plotly_chart(fig)
 
-
+st.write("---")
 
 st.header("Prix moyen observé d'un modèle")
 # Liste des marques disponibles
