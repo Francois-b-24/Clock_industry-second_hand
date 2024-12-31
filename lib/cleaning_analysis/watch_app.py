@@ -10,6 +10,11 @@ import plotly.express as px
 def chargement_base(path_load, path_save):
     """Charge les données depuis une base SQLite et les sauvegarde en CSV."""
     try:
+        # Vérifier si la base de données existe
+        if not os.path.exists(path_load):
+            st.error("La base de données SQLite est introuvable.")
+            return pd.DataFrame()
+
         # Connexion à la base de données
         connexion = sqlite3.connect(path_load)
         df = pd.read_sql_query("SELECT * FROM montre", connexion)
@@ -24,7 +29,6 @@ def chargement_base(path_load, path_save):
     except Exception as e:
         st.error(f"Erreur lors du chargement des données : {e}")
         return pd.DataFrame()
-
 # Charger les données
 path_load = "data_app/montre.db"
 path_save = "data_app/base.csv"
