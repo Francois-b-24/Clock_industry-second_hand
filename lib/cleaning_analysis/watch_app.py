@@ -6,7 +6,7 @@ import numpy as np
 import plotly.express as px
 
 # Lien Google Drive modifié pour le téléchargement direct
-url = "https://drive.google.com/uc?id=1FI7ad6nMwtH2grh8fvHk8zbsXMhoJj0R"
+url = "https://drive.google.com/file/d/1FI7ad6nMwtH2grh8fvHk8zbsXMhoJj0R/view?usp=drive_link"
 
 try:
     # Charger avec des options pour ignorer les erreurs
