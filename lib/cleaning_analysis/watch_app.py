@@ -10,13 +10,10 @@ url = "https://drive.google.com/uc?id=1FI7ad6nMwtH2grh8fvHk8zbsXMhoJj0R"
 
 try:
     # Charger avec des options pour ignorer les erreurs
-    df = pd.read_csv(url)
-    st.success("Données chargées avec succès (lignes problématiques ignorées) !")
-    st.dataframe(df)
+    df = pd.read_csv(url, usecols=lambda column: column != 'Unnamed: 0')
 except Exception as e:
     st.error(f"Erreur lors du chargement des données : {e}")
     
-
 if df.empty:
     st.error("Impossible de charger les données. Vérifiez les chemins ou la base de données.")
     st.stop()
