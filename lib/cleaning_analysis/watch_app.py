@@ -26,8 +26,8 @@ def chargement_base(path_load, path_save):
         return pd.DataFrame()
 
 # Charger les données
-path_load = "/Users/f.b/Desktop/Data_Science/Clock_industry/lib/cleaning_analysis/montre.db"
-path_save = "/Users/f.b/Desktop/Data_Science/Clock_industry/lib/cleaning_analysis/base.csv"
+path_load = "data_app/montre.db"
+path_save = "data_app/base.csv"
 
 df = chargement_base(path_load, path_save)
 
