@@ -6,11 +6,11 @@ import numpy as np
 import plotly.express as px
 
 # Lien Google Drive modifié pour le téléchargement direct
-url = "https://drive.google.com/uc?id=1dGaqUWsVUsIpFCR1DuRJv_Pml3Dtzyjv"
+url = "https://drive.google.com/uc?id=1FI7ad6nMwtH2grh8fvHk8zbsXMhoJj0R"
 
 try:
     # Charger avec des options pour ignorer les erreurs
-    df = pd.read_csv(url, error_bad_lines=False, warn_bad_lines=True, engine="python")
+    df = pd.read_csv(url)
     st.success("Données chargées avec succès (lignes problématiques ignorées) !")
     st.dataframe(df)
 except Exception as e:
@@ -21,37 +21,6 @@ if df.empty:
     st.error("Impossible de charger les données. Vérifiez les chemins ou la base de données.")
     st.stop()
 
-# Nettoyage des données
-nettoyage = Nettoyage(df)
-
-try:
-    df = nettoyage.nettoyage_colonnes()
-
-    colonnes_a_renseigner = [
-        "matiere_boitier", "matiere_bracelet", "sexe", "diametre", "etencheite",
-        "matiere_lunette", "matiere_verre", "boucle", "matiere_boucle", "rouage",
-        "reserve_de_marche", "mouvement"
-    ]
-
-    for col in colonnes_a_renseigner:
-        df = nettoyage.remplissage(col)
-
-    df = nettoyage.remplissage_mouvement()
-    df = nettoyage.remplissage_reserve_marche()
-    df = nettoyage.compteur_complications("fonctions")
-    df = nettoyage.suppression_colonnes()
-    df = nettoyage.mise_en_forme()
-    df = nettoyage.nettoyer_matiere_boitier()
-    df = nettoyage.matiere()
-    df = nettoyage.mapping_matiere()
-    df = nettoyage.regroupement_etat_montres()
-    df = nettoyage.extraction_elements_avant_euro()
-    df = nettoyage.nettoyer_valeurs("prix")
-    df = nettoyage.extraction_integer()
-except Exception as e:
-    st.error(f"Erreur lors du nettoyage des données : {e}")
-    st.stop()
-    
     
 # Création d'une variable de prix en logarithme qui nous sera utile lors de modélisation pour respecter les hypothèses des modèles.
 df['prix_log'] = np.log(df['prix'])
