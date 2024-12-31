@@ -126,7 +126,6 @@ montres_selectionnees = df[(df['marque'] == marque_selectionnee) & (df['modele']
 prix_moyen = montres_selectionnees['prix'].mean()
 
 st.header("Prix moyen observé d'un modèle en particulier")
-
 # Affichage du résultat
 st.write(f"Le prix moyen de la montre {modele_selectionne} de la marque {marque_selectionnee} est de {prix_moyen:.2f} €.")
 
