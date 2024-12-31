@@ -1,7 +1,5 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 from nettoyage import Nettoyage
 import sqlite3
 import numpy as np
