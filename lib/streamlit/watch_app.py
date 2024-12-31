@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from nettoyage import Nettoyage
 import sqlite3
 import numpy as np
 import plotly.express as px
