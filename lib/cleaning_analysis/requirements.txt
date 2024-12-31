@@ -1,0 +1,6 @@
+streamlit 
+pandas 
+Nettoyage
+sqlite3
+numpy 
+plotly
