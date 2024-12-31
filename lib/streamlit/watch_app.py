@@ -104,6 +104,9 @@ else:
         # Afficher le graphique dans Streamlit
     st.plotly_chart(fig)
 
+
+st.header("Prix moyen observé d'un modèle en particulier")
+
 # Liste des marques disponibles
 marques = df['marque'].unique()
 
