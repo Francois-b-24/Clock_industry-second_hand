@@ -26,7 +26,7 @@ df['prix_log'] = np.log(df['prix'])
 df['prix_sc'] = df['prix']*(1-0.06)
 
 # Titre de l'application
-st.title("Analyse des montres de luxe et influence des caractéristiques sur le prix")
+st.title("Montres de luxe : Analyse et facteurs de prix")
 
 st.write("---")
 
@@ -34,7 +34,7 @@ st.write("---")
 n_lignes, n_colonnes = df.shape
 
 # Affichage du nombre de lignes et de colonnes
-st.write(f"La base de données contient {n_lignes} lignes et {n_colonnes} colonnes. Les données ont été récupérées sur le site chrono24. C'est une plateforme pour acheter ou vendre des montres de luxe d'occasion. En l'occurrence, la base de données contient des informations sur les montres mises en vente.")
+st.write(f"La base de données contient {n_lignes} lignes et {n_colonnes} colonnes. Les données proviennent de Chrono24, une plateforme reconnue pour l’achat et la vente de montres de luxe, qu’elles soient neuves ou d’occasion. Cette base de données regroupe des informations détaillées sur les montres actuellement proposées à la vente, offrant un aperçu précieux du marché.")
 
 st.write("---")
 
@@ -112,6 +112,7 @@ else:
 st.write("---")
 
 st.header("Prix moyen observé d'un modèle")
+
 # Liste des marques disponibles
 marques = df['marque'].unique()
 
@@ -124,15 +125,34 @@ modeles = df[df['marque'] == marque_selectionnee]['modele'].unique()
 # Sélection du modèle
 modele_selectionne = st.selectbox("Choisissez un modèle :", modeles)
 
-# Filtrage des données en fonction de la marque et du modèle sélectionnés
-montres_selectionnees = df[(df['marque'] == marque_selectionnee) & (df['modele'] == modele_selectionne)]
+# Liste des options de sexe disponibles
+sexes = df['sexe'].unique()
+
+# Sélection du sexe
+sexe_selectionne = st.selectbox("Choisissez le sexe :", sexes)
+
+# Filtrer les diamètres disponibles pour la sélection
+diametres = df[(df['marque'] == marque_selectionnee) & (df['modele'] == modele_selectionne) & (df['sexe'] == sexe_selectionne)]['diametre'].unique()
+
+# Sélection de la taille du diamètre
+diametre_selectionne = st.selectbox("Choisissez un diamètre :", diametres)
+
+# Filtrage des données en fonction de la marque, du modèle, du sexe et du diamètre sélectionnés
+montres_selectionnees = df[
+    (df['marque'] == marque_selectionnee) &
+    (df['modele'] == modele_selectionne) &
+    (df['sexe'] == sexe_selectionne) &
+    (df['diametre'] == diametre_selectionne)
+]
 
 # Calcul du prix moyen
-prix_moyen = montres_selectionnees['prix'].mean()
-
-
-# Affichage du résultat
-st.write(f"Le prix moyen de la montre {modele_selectionne} de la marque {marque_selectionnee} est de {prix_moyen:.2f} €.")
+if not montres_selectionnees.empty:
+    prix_moyen = montres_selectionnees['prix'].mean()
+    st.write(
+        f"Le prix moyen de la montre {modele_selectionne} de la marque {marque_selectionnee}, pour {sexe_selectionne} et avec un diamètre de {diametre_selectionne} mm, est de {prix_moyen:.2f} €."
+    )
+else:
+    st.warning("Aucune montre ne correspond à ces critères. Veuillez affiner votre sélection.")
 
 
 # Footer
