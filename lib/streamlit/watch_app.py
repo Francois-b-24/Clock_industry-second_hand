@@ -81,7 +81,7 @@ if feature in colonnes_numeriques:
     # Nuage de points (scatter plot) pour les variables numériques
     with col1:
         st.subheader(f"Relation entre {feature} et le prix")
-        fig = px.scatter(df, x=feature y="prix_sc", title=f"Prix en fonction de {feature}")
+        fig = px.scatter(df, x=feature, y="prix_sc", title=f"Prix en fonction de {feature}")
         fig.update_layout(xaxis_title=feature, yaxis_title="Prix (€)")
         st.plotly_chart(fig)
 else:
@@ -96,7 +96,7 @@ else:
     with col1:
         st.subheader(f"Répartition du prix selon {feature}")
         # Créer un diagramme en barres avec Plotly
-        fig = px.bar(prix_moyens, x=feature y="prix_sc",
+        fig = px.bar(prix_moyens, x=feature, y="prix_sc",
              title=f"Prix moyen par {feature}",
              labels={feature: feature, 'prix': 'Prix moyen (€)'},
              color=feature,
@@ -105,7 +105,7 @@ else:
     st.plotly_chart(fig)
 
 
-st.header("Prix moyen observé d'un modèle en particulier")
+
 
 # Liste des marques disponibles
 marques = df['marque'].unique()
@@ -124,6 +124,8 @@ montres_selectionnees = df[(df['marque'] == marque_selectionnee) & (df['modele']
 
 # Calcul du prix moyen
 prix_moyen = montres_selectionnees['prix'].mean()
+
+st.header("Prix moyen observé d'un modèle en particulier")
 
 # Affichage du résultat
 st.write(f"Le prix moyen de la montre {modele_selectionne} de la marque {marque_selectionnee} est de {prix_moyen:.2f} €.")
