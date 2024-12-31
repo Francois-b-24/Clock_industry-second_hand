@@ -81,7 +81,7 @@ if feature in colonnes_numeriques:
     # Nuage de points (scatter plot) pour les variables numériques
     with col1:
         st.subheader(f"Relation entre {feature} et le prix")
-        fig = px.scatter(df, x="prix_sc", y=feature, title=f"Prix en fonction de {feature}")
+        fig = px.scatter(df, x=feature y="prix_sc", title=f"Prix en fonction de {feature}")
         fig.update_layout(xaxis_title=feature, yaxis_title="Prix (€)")
         st.plotly_chart(fig)
 else:
@@ -96,7 +96,7 @@ else:
     with col1:
         st.subheader(f"Répartition du prix selon {feature}")
         # Créer un diagramme en barres avec Plotly
-        fig = px.bar(prix_moyens, x='prix', y=feature,
+        fig = px.bar(prix_moyens, x=feature y="prix_sc",
              title=f"Prix moyen par {feature}",
              labels={feature: feature, 'prix': 'Prix moyen (€)'},
              color=feature,
