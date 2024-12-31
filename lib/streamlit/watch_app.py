@@ -147,8 +147,8 @@ montres_selectionnees = df[
 
 # Calcul du prix moyen
 if not montres_selectionnees.empty:
-    prix_moyen = montres_selectionnees['prix'].mean()
-    st.write(
+    prix_moyen= montres_selectionnees['prix'].mean()
+    st.write( 
         f"Le prix moyen de la montre {modele_selectionne} de la marque {marque_selectionnee}, pour {sexe_selectionne} et avec un diamètre de {diametre_selectionne} mm, est de {prix_moyen:.2f} €."
     )
 else:
