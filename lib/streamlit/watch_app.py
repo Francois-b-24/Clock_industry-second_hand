@@ -114,42 +114,35 @@ st.write("---")
 st.header("Prix moyen observé d'un modèle")
 
 # Liste des marques disponibles
-marques = df['marque'].unique()
+marques = df['marque'].dropna().unique()
 
 # Sélection de la marque
 marque_selectionnee = st.selectbox("Choisissez une marque :", marques)
 
 # Liste des modèles disponibles pour la marque sélectionnée
-modeles = df[df['marque'] == marque_selectionnee]['modele'].unique()
+modeles = df[df['marque'] == marque_selectionnee]['modele'].dropna().unique()
 
 # Sélection du modèle
 modele_selectionne = st.selectbox("Choisissez un modèle :", modeles)
 
 # Liste des options de sexe disponibles
-sexes = df['sexe'].unique()
+sexes = df['sexe'].dropna().unique()
 
 # Sélection du sexe
 sexe_selectionne = st.selectbox("Choisissez le sexe :", sexes)
 
-# Filtrer les diamètres disponibles pour la sélection
-diametres = df[(df['marque'] == marque_selectionnee) & (df['modele'] == modele_selectionne) & (df['sexe'] == sexe_selectionne)]['diametre'].unique()
-
-# Sélection de la taille du diamètre
-diametre_selectionne = st.selectbox("Choisissez un diamètre :", diametres)
-
-# Filtrage des données en fonction de la marque, du modèle, du sexe et du diamètre sélectionnés
+# Filtrage des données en fonction de la marque, du modèle et du sexe sélectionnés
 montres_selectionnees = df[
     (df['marque'] == marque_selectionnee) &
     (df['modele'] == modele_selectionne) &
-    (df['sexe'] == sexe_selectionne) &
-    (df['diametre'] == diametre_selectionne)
+    (df['sexe'] == sexe_selectionne)
 ]
 
 # Calcul du prix moyen
 if not montres_selectionnees.empty:
-    prix_moyen= montres_selectionnees['prix'].mean()
-    st.write( 
-        f"Le prix moyen de la montre {modele_selectionne} de la marque {marque_selectionnee}, pour {sexe_selectionne} et avec un diamètre de {diametre_selectionne} mm, est de {prix_moyen:.2f} €."
+    prix_moyen = montres_selectionnees['prix'].mean()
+    st.write(
+        f"Le prix moyen de la montre {modele_selectionne} de la marque {marque_selectionnee}, pour {sexe_selectionne}, est de {prix_moyen:.2f} €."
     )
 else:
     st.warning("Aucune montre ne correspond à ces critères. Veuillez affiner votre sélection.")
