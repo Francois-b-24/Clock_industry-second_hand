@@ -9,11 +9,9 @@ import plotly.express as px
 url = "https://drive.google.com/uc?id=1dGaqUWsVUsIpFCR1DuRJv_Pml3Dtzyjv"
 
 try:
-    # Lire les données depuis le lien
-    df = pd.read_csv(url)
-
-    # Afficher un message de succès et le DataFrame
-    st.success("Données chargées avec succès depuis Google Drive !")
+    # Charger avec des options pour ignorer les erreurs
+    df = pd.read_csv(url, error_bad_lines=False, warn_bad_lines=True, engine="python")
+    st.success("Données chargées avec succès (lignes problématiques ignorées) !")
     st.dataframe(df)
 except Exception as e:
     st.error(f"Erreur lors du chargement des données : {e}")
