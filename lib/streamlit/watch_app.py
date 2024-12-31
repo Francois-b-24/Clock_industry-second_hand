@@ -28,6 +28,8 @@ df['prix_sc'] = df['prix']*(1-0.06)
 # Titre de l'application
 st.title("Analyse des montres de luxe et influence des caractéristiques sur le prix")
 
+st.write("---")
+
 # Récupération du nombre de lignes et de colonnes
 n_lignes, n_colonnes = df.shape
 
