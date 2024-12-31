@@ -86,10 +86,10 @@ if feature in colonnes_numeriques:
         st.plotly_chart(fig)
 else:
     # Calculer les prix moyens par catégorie
-    prix_moyens = df.groupby(feature)['prix'].mean().reset_index()
+    prix_moyens = df.groupby(feature)['prix_sc'].mean().reset_index()
 
     # Trier par prix moyen en ordre décroissant
-    prix_moyens = prix_moyens.sort_values(by='prix', ascending=False)
+    prix_moyens = prix_moyens.sort_values(by='prix_sc', ascending=False)
 
 
     # Diagramme en barres (bar plot) pour les variables catégorielles
@@ -98,7 +98,7 @@ else:
         # Créer un diagramme en barres avec Plotly
         fig = px.bar(prix_moyens, x=feature, y="prix_sc",
              title=f"Prix moyen par {feature}",
-             labels={feature: feature, 'prix': 'Prix moyen (€)'},
+             labels={feature: feature, 'prix_sc': 'Prix moyen (€)'},
              color=feature,
              color_continuous_scale='Viridis')
         # Afficher le graphique dans Streamlit
