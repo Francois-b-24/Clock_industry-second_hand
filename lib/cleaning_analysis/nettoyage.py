@@ -381,8 +381,28 @@ class Nettoyage:
         self.df['etat'] = self.df['etat'].apply(self.regrouper_état) 
         return self.df
     
+    # Fonction pour extraire le prix en euros
+    def extraire_prix_en_euros(self,liste_elements):
+        # Convertir la liste en une chaîne de texte
+        text = ' '.join(liste_elements)
+        
+        # Expression régulière pour capturer les nombres suivis du symbole euro (€)
+        match = re.search(r'([\d\s]+)\s*€', text)
+        
+        if match:
+            # Supprimer les espaces dans le nombre récupéré
+            prix = match.group(1).replace(" ", "")
+            return f"{prix} €"
+        else:
+            return None  # Aucun prix en euros trouvé
     
+    
+    def recup_prix(self):
+        """ Appliquer la fonction à la colonne du DataFrame """
+        self.df['prix_euros'] = self.df['prix'].apply(self.extraire_prix_en_euros)   
+        return df
  
+    
     def extraire_elements_avant_euro(self, chaine):
         """
         Extrait les deux éléments avant le symbole '€' dans une chaîne.
